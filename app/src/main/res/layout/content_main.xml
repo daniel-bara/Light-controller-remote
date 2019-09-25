@@ -31,7 +31,7 @@
 
             <Button
                 android:id="@+id/buttonOn"
-                android:layout_width="match_parent"
+                android:layout_width="150dp"
                 android:layout_height="wrap_content"
                 android:onClick="onClickTurnOn"
                 android:text="Turn On" />
@@ -39,14 +39,26 @@
 
         <TableRow
             android:layout_width="match_parent"
-            android:layout_height="match_parent" />
+            android:layout_height="match_parent" >
+
+            <EditText
+                android:id="@+id/editText"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:ems="10"
+                android:hint="Custom message"
+                android:inputType="textPersonName" />
+        </TableRow>
 
         <TableRow
             android:layout_width="match_parent"
-            android:layout_height="match_parent" />
+            android:layout_height="match_parent" >
+
+        </TableRow>
     </TableLayout>
 
     <TextView
+        android:id="@+id/tvw"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:text="Hello World!"

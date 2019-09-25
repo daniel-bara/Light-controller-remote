@@ -1,7 +1,6 @@
 package com.example.controller
 
 import android.os.Bundle
-import com.google.android.material.snackbar.Snackbar
 import androidx.appcompat.app.AppCompatActivity
 import android.view.Menu
 import android.view.MenuItem
@@ -10,37 +9,29 @@ import com.android.volley.Request
 import com.android.volley.RequestQueue
 import com.android.volley.Response
 import com.android.volley.toolbox.StringRequest
-import com.android.volley.toolbox.JsonObjectRequest
 import com.android.volley.toolbox.Volley
-
 import kotlinx.android.synthetic.main.activity_main.*
-import org.json.JSONException
-//import javax.swing.UIManager.put
-import org.json.JSONObject
-import androidx.core.app.ComponentActivity
-import androidx.core.app.ComponentActivity.ExtraData
-import androidx.core.content.ContextCompat.getSystemService
-import android.icu.lang.UCharacter.GraphemeClusterBreak.T
 import android.util.Log
-import com.android.volley.AuthFailureError
-import androidx.core.content.ContextCompat.getSystemService
-import android.icu.lang.UCharacter.GraphemeClusterBreak.T
-
-
+import android.widget.EditText
+import android.widget.TextView
 
 
 class MainActivity : AppCompatActivity() {
+    val url = "http://192.168.2.104:8766"
+
     private lateinit var queue:RequestQueue
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_main)
         setSupportActionBar(toolbar)
-
+        var edittxt:EditText = findViewById<EditText>(R.id.editText)
+        var textvw:TextView = findViewById<TextView>(R.id.tvw)
         fab.setOnClickListener { view ->
-            Snackbar.make(view, "Replace with your own action", Snackbar.LENGTH_LONG)
-                .setAction("Action", null).show()
+            sendRaw(edittxt.text.toString())
+            //Log.d("TAG", "l;ask")
         }
         queue = Volley.newRequestQueue(this)
+        textvw.text = "Sending commands to " + url
     }
 
     override fun onCreateOptionsMenu(menu: Menu): Boolean {
@@ -70,8 +61,13 @@ class MainActivity : AppCompatActivity() {
         params["lightOn"] = "0"
         send(params)
     }
+    private fun sendRaw(text:String){
+        val postRequest = object: StringRequest(Request.Method.GET, "$url/?$text", Response.Listener {}, Response.ErrorListener{}){}
+        queue.add(postRequest)
+        Log.d("TAG", "Contacting $url/?$text")
+    }
     private fun send(parameters:HashMap<String, String>){
-        val postRequest = object: StringRequest(Request.Method.POST, "http://192.168.2.104:8766", Response.Listener {}, Response.ErrorListener{}) {
+        val postRequest = object: StringRequest(Request.Method.POST, url, Response.Listener {}, Response.ErrorListener{}) {
             override fun getBodyContentType():String {
                 return "application/x-www-form-urlencoded; charset=UTF-8"
             }
