@@ -14,26 +14,32 @@ import kotlinx.android.synthetic.main.activity_main.*
 import android.util.Log
 import android.widget.EditText
 import android.widget.TextView
+import kotlinx.android.synthetic.main.content_main.*
+import org.w3c.dom.Text
 
 
 class MainActivity : AppCompatActivity() {
-    val url = "http://192.168.2.104:8766"
-
+    var url = "http://192.168.2.104:8766"
+    lateinit var textvw:TextView
+    lateinit var edittxt:EditText
     private lateinit var queue:RequestQueue
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_main)
         setSupportActionBar(toolbar)
-        var edittxt:EditText = findViewById<EditText>(R.id.editText)
-        var textvw:TextView = findViewById<TextView>(R.id.tvw)
+        edittxt= findViewById(R.id.editText)
+        textvw= findViewById(R.id.tvw)
         fab.setOnClickListener { view ->
             sendRaw(edittxt.text.toString())
             //Log.d("TAG", "l;ask")
         }
         queue = Volley.newRequestQueue(this)
-        textvw.text = "Sending commands to " + url
+        updateTextView()
     }
 
+    private fun updateTextView(){
+        textvw.text = "Sending commands to $url"
+    }
     override fun onCreateOptionsMenu(menu: Menu): Boolean {
         // Inflate the menu; this adds items to the action bar if it is present.
         menuInflater.inflate(R.menu.menu_main, menu)
@@ -60,6 +66,33 @@ class MainActivity : AppCompatActivity() {
         params["ltOn"] = "1"
         params["lightOn"] = "0"
         send(params)
+    }
+    fun onClickModifyUrl(v:View) {
+        val text = edittxt.text.toString()
+        if (text.split('.').lastIndex == 4){
+            url = if (editText.text.toString()[0]== 'h'){  // text is http://192.168.2.104:8555
+                text
+                }
+                else {"http://$text"}
+        }
+        else {var urlArr = url.split('.', ':').toMutableList()
+            if (text.contains(':')) {
+                if(text[0] == ':'){       // text is :8555
+                    urlArr[5] = text.removePrefix(":")
+                    Log.i("TAG", text)
+                }
+                else {    // text is 104:8555
+                    urlArr[4] = text.split(':')[0]
+                    urlArr[5] = text.split(':')[1]
+                }
+            }
+            else {        // text is 104
+                urlArr[4] = text
+            }
+            url = "${urlArr[0]}:${urlArr[1]}.${urlArr[2]}.${urlArr[3]}.${urlArr[4]}:${urlArr[5]}"
+        }
+        edittxt.text.clear()
+        updateTextView()
     }
     private fun sendRaw(text:String){
         val postRequest = object: StringRequest(Request.Method.GET, "$url/?$text", Response.Listener {}, Response.ErrorListener{}){}
