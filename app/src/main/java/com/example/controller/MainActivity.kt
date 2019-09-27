@@ -68,31 +68,35 @@ class MainActivity : AppCompatActivity() {
         send(params)
     }
     fun onClickModifyUrl(v:View) {
+
         val text = edittxt.text.toString()
-        if (text.split('.').lastIndex == 4){
-            url = if (editText.text.toString()[0]== 'h'){  // text is http://192.168.2.104:8555
-                text
+        if(!text.contains('=')) {
+            if (text.split('.').lastIndex == 4) {
+                url =
+                    if (editText.text.toString()[0] == 'h') {  // text is http://192.168.2.104:8555
+                        text
+                    } else {
+                        "http://$text"
+                    }
+            } else {
+                var urlArr = url.split('.', ':').toMutableList()
+                if (text.contains(':')) {
+                    if (text[0] == ':') {       // text is :8555
+                        urlArr[5] = text.removePrefix(":")
+                        Log.i("TAG", text)
+                    } else {    // text is 104:8555
+                        urlArr[4] = text.split(':')[0]
+                        urlArr[5] = text.split(':')[1]
+                    }
+                } else {        // text is 104
+                    urlArr[4] = text
                 }
-                else {"http://$text"}
-        }
-        else {var urlArr = url.split('.', ':').toMutableList()
-            if (text.contains(':')) {
-                if(text[0] == ':'){       // text is :8555
-                    urlArr[5] = text.removePrefix(":")
-                    Log.i("TAG", text)
-                }
-                else {    // text is 104:8555
-                    urlArr[4] = text.split(':')[0]
-                    urlArr[5] = text.split(':')[1]
-                }
+                url =
+                    "${urlArr[0]}:${urlArr[1]}.${urlArr[2]}.${urlArr[3]}.${urlArr[4]}:${urlArr[5]}"
             }
-            else {        // text is 104
-                urlArr[4] = text
-            }
-            url = "${urlArr[0]}:${urlArr[1]}.${urlArr[2]}.${urlArr[3]}.${urlArr[4]}:${urlArr[5]}"
+            edittxt.text.clear()
+            updateTextView()
         }
-        edittxt.text.clear()
-        updateTextView()
     }
     private fun sendRaw(text:String){
         val postRequest = object: StringRequest(Request.Method.GET, "$url/?$text", Response.Listener {}, Response.ErrorListener{}){}
@@ -109,7 +113,8 @@ class MainActivity : AppCompatActivity() {
                 return parameters
             }
         }
-        Log.d("TAG", "Sending " + parameters.toString())
+        Log.d("TAG", "Sending $parameters.toString()")
         queue.add(postRequest)
+
     }
 }
