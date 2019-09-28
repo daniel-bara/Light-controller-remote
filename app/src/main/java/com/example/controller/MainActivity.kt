@@ -1,6 +1,5 @@
 package com.example.controller
 
-import android.graphics.Color
 import android.os.Bundle
 import android.os.Handler
 import androidx.appcompat.app.AppCompatActivity
@@ -19,13 +18,12 @@ import android.widget.TextView
 import androidx.core.os.postDelayed
 import com.skydoves.colorpickerview.ColorEnvelope
 import com.skydoves.colorpickerview.listeners.ColorEnvelopeListener
-import com.skydoves.colorpickerview.listeners.ColorListener
 import kotlinx.android.synthetic.main.content_main.*
-import org.w3c.dom.Text
 
 
 class MainActivity : AppCompatActivity() {
     var url = "http://192.168.2.104:8766"
+    val colorDelayMillis:Long = 250
     lateinit var textvw:TextView
     lateinit var edittxt:EditText
     private lateinit var queue:RequestQueue
@@ -52,7 +50,7 @@ class MainActivity : AppCompatActivity() {
             }
             if(sendingColorQueue > 0) {
                 sendingColorQueue -= 1
-                continuousSender.postDelayed(this, 250)
+                continuousSender.postDelayed(this, colorDelayMillis)
             }
             Log.i("sending", sendingColorQueue.toString())
 
@@ -61,7 +59,7 @@ class MainActivity : AppCompatActivity() {
         colorPickerView.setColorListener(object : ColorEnvelopeListener {
             override fun onColorSelected(envelope: ColorEnvelope, fromUser: Boolean) {
                 rgbEnvelope = envelope
-                if(sendingColorQueue ==0){continuousSender.postDelayed(delayOver, 1000)}
+                if(sendingColorQueue ==0){continuousSender.postDelayed(delayOver, colorDelayMillis)}
                 if(sendingColorQueue<2){
                     sendingColorQueue=2
                     sendColor()
