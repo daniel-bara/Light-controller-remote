@@ -47,19 +47,24 @@ class MainActivity : AppCompatActivity() {
         updateTextView()
 
         val delayOver = object:Runnable { override fun run() {
-            sendingColorQueue-=1
-            if(sendingColorQueue ==0){
+            if(sendingColorQueue == 1) {
                 sendColor()
             }
-        } }
+            if(sendingColorQueue > 0) {
+                sendingColorQueue -= 1
+                continuousSender.postDelayed(this, 220)
+            }
+            Log.i("sending", sendingColorQueue.toString())
 
+        } }
+        continuousSender.postDelayed(delayOver, 1000)
         colorPickerView.setColorListener(object : ColorEnvelopeListener {
             override fun onColorSelected(envelope: ColorEnvelope, fromUser: Boolean) {
                 rgbEnvelope = envelope
-                if(sendingColorQueue<1){
-                    sendingColorQueue+=1
+                if(sendingColorQueue ==0){continuousSender.postDelayed(delayOver, 1000)}
+                if(sendingColorQueue<2){
+                    sendingColorQueue=2
                     sendColor()
-                    continuousSender.postDelayed(delayOver, 1000)
                 }
             }
         })
