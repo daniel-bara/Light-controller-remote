@@ -1,6 +1,8 @@
 package com.example.controller
 
+import android.graphics.Color
 import android.os.Bundle
+import android.os.Handler
 import androidx.appcompat.app.AppCompatActivity
 import android.view.Menu
 import android.view.MenuItem
@@ -14,6 +16,10 @@ import kotlinx.android.synthetic.main.activity_main.*
 import android.util.Log
 import android.widget.EditText
 import android.widget.TextView
+import androidx.core.os.postDelayed
+import com.skydoves.colorpickerview.ColorEnvelope
+import com.skydoves.colorpickerview.listeners.ColorEnvelopeListener
+import com.skydoves.colorpickerview.listeners.ColorListener
 import kotlinx.android.synthetic.main.content_main.*
 import org.w3c.dom.Text
 
@@ -23,6 +29,10 @@ class MainActivity : AppCompatActivity() {
     lateinit var textvw:TextView
     lateinit var edittxt:EditText
     private lateinit var queue:RequestQueue
+    var sendingColorQueue= 0
+    lateinit var rgbEnvelope: ColorEnvelope
+    val continuousSender = Handler()
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_main)
@@ -35,8 +45,33 @@ class MainActivity : AppCompatActivity() {
         }
         queue = Volley.newRequestQueue(this)
         updateTextView()
+
+        val delayOver = object:Runnable { override fun run() {
+            sendingColorQueue-=1
+            if(sendingColorQueue ==0){
+                sendColor()
+            }
+        } }
+
+        colorPickerView.setColorListener(object : ColorEnvelopeListener {
+            override fun onColorSelected(envelope: ColorEnvelope, fromUser: Boolean) {
+                rgbEnvelope = envelope
+                if(sendingColorQueue<1){
+                    sendingColorQueue+=1
+                    sendColor()
+                    continuousSender.postDelayed(delayOver, 1000)
+                }
+            }
+        })
     }
 
+    fun sendColor(){
+        val rgbSelected = HashMap<String, String>()
+        rgbSelected["r"] = rgbEnvelope.argb[1].toString()
+        rgbSelected["g"] = rgbEnvelope.argb[2].toString()
+        rgbSelected["b"] = rgbEnvelope.argb[3].toString()
+        send(rgbSelected)
+    }
     private fun updateTextView(){
         textvw.text = "Sending commands to $url"
     }
@@ -57,13 +92,11 @@ class MainActivity : AppCompatActivity() {
     }
     fun onClickTurnOn(view: View){
         val params = HashMap<String, String>()
-        params["On"] = "1"
         params["lightOn"] = "1"
         send(params)
     }
     fun onClickTurnOff(view: View){
         val params = HashMap<String, String>()
-        params["ltOn"] = "1"
         params["lightOn"] = "0"
         send(params)
     }
@@ -113,7 +146,7 @@ class MainActivity : AppCompatActivity() {
                 return parameters
             }
         }
-        Log.d("TAG", "Sending $parameters.toString()")
+        Log.d("sending", "Sending $parameters.toString()")
         queue.add(postRequest)
 
     }
