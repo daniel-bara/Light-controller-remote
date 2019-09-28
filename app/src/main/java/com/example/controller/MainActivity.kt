@@ -52,7 +52,7 @@ class MainActivity : AppCompatActivity() {
             }
             if(sendingColorQueue > 0) {
                 sendingColorQueue -= 1
-                continuousSender.postDelayed(this, 220)
+                continuousSender.postDelayed(this, 250)
             }
             Log.i("sending", sendingColorQueue.toString())
 
