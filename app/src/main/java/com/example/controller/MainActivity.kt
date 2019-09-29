@@ -2,6 +2,7 @@ package com.example.controller
 
 import android.os.Bundle
 import android.os.Handler
+import android.text.InputType
 import androidx.appcompat.app.AppCompatActivity
 import android.view.Menu
 import android.view.MenuItem
@@ -15,29 +16,43 @@ import kotlinx.android.synthetic.main.activity_main.*
 import android.util.Log
 import android.widget.EditText
 import android.widget.TextView
-import androidx.core.os.postDelayed
 import com.skydoves.colorpickerview.ColorEnvelope
 import com.skydoves.colorpickerview.listeners.ColorEnvelopeListener
 import kotlinx.android.synthetic.main.content_main.*
+import com.skydoves.colorpickerview.sliders.AlphaSlideBar
+import android.view.KeyEvent.KEYCODE_ENTER
+import android.R.string.no
+import android.R.attr.name
+import androidx.core.content.ContextCompat.getSystemService
+import android.icu.lang.UCharacter.GraphemeClusterBreak.T
+import android.view.KeyEvent
+import android.content.Context.INPUT_METHOD_SERVICE
+import androidx.core.content.ContextCompat.getSystemService
+import android.R.string.no
+import android.R.attr.name
+import androidx.core.app.ComponentActivity.ExtraData
+import android.icu.lang.UCharacter.GraphemeClusterBreak.T
+import android.view.inputmethod.InputMethodManager
 
 
 class MainActivity : AppCompatActivity() {
     var url = "http://192.168.2.104:8766"
-    val colorDelayMillis:Long = 250
+    val colorDelayMillis:Long = 600
     lateinit var textvw:TextView
     lateinit var edittxt:EditText
     private lateinit var queue:RequestQueue
     var sendingColorQueue= 0
-    lateinit var rgbEnvelope: ColorEnvelope
+    lateinit var argbEnvelope: ColorEnvelope
     val continuousSender = Handler()
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_main)
+
         //setSupportActionBar(toolbar)
         edittxt= findViewById(R.id.editText)
         textvw= findViewById(R.id.tvw)
-        fab.setOnClickListener { view ->
+        fab.setOnClickListener {
             sendRaw(edittxt.text.toString())
             //Log.d("TAG", "l;ask")
         }
@@ -58,7 +73,7 @@ class MainActivity : AppCompatActivity() {
         continuousSender.postDelayed(delayOver, 1000)
         colorPickerView.setColorListener(object : ColorEnvelopeListener {
             override fun onColorSelected(envelope: ColorEnvelope, fromUser: Boolean) {
-                rgbEnvelope = envelope
+                argbEnvelope = envelope
                 if(sendingColorQueue ==0){continuousSender.postDelayed(delayOver, colorDelayMillis)}
                 if(sendingColorQueue<2){
                     sendingColorQueue=2
@@ -66,14 +81,29 @@ class MainActivity : AppCompatActivity() {
                 }
             }
         })
+        val alphaSlideBar: AlphaSlideBar = findViewById(R.id.alphaSlideBar)
+        colorPickerView.attachAlphaSlider(alphaSlideBar)
+
+        edittxt.setOnKeyListener(object : View.OnKeyListener {
+            override fun onKey(v: View, keyCode: Int, event: KeyEvent): Boolean {
+                // If the event is a key-down event on the "enter" button
+                if (event.action == KeyEvent.ACTION_DOWN && keyCode == KEYCODE_ENTER) {
+                    // Perform action on key press
+                    onClickModifyUrl(v)
+                    return true
+                }
+                return false
+            }
+        })
     }
 
     fun sendColor(){
-        val rgbSelected = HashMap<String, String>()
-        rgbSelected["r"] = rgbEnvelope.argb[1].toString()
-        rgbSelected["g"] = rgbEnvelope.argb[2].toString()
-        rgbSelected["b"] = rgbEnvelope.argb[3].toString()
-        send(rgbSelected)
+        val argbSelected = HashMap<String, String>()
+        argbSelected["maxBrightness"] = (argbEnvelope.argb[0]*100/255).toString()
+        argbSelected["r"] = argbEnvelope.argb[1].toString()
+        argbSelected["g"] = argbEnvelope.argb[2].toString()
+        argbSelected["b"] = argbEnvelope.argb[3].toString()
+        send(argbSelected)
     }
     private fun updateTextView(){
         textvw.text = "Sending commands to $url"
@@ -93,29 +123,28 @@ class MainActivity : AppCompatActivity() {
             else -> super.onOptionsItemSelected(item)
         }
     }
-    fun onClickTurnOn(view: View){
+    fun onClickTurnOn(v: View){
         val params = HashMap<String, String>()
         params["lightOn"] = "1"
         send(params)
     }
-    fun onClickTurnOff(view: View){
+    fun onClickTurnOff(v:View){
         val params = HashMap<String, String>()
         params["lightOn"] = "0"
         send(params)
     }
     fun onClickModifyUrl(v:View) {
-
         val text = edittxt.text.toString()
         if(!text.contains('=')) {
             if (text.split('.').lastIndex == 4) {
                 url =
                     if (editText.text.toString()[0] == 'h') {  // text is http://192.168.2.104:8555
                         text
-                    } else {
+                    } else {                                    // text is 192.168.2.104:8555
                         "http://$text"
                     }
             } else {
-                var urlArr = url.split('.', ':').toMutableList()
+                val urlArr = url.split('.', ':').toMutableList()
                 if (text.contains(':')) {
                     if (text[0] == ':') {       // text is :8555
                         urlArr[5] = text.removePrefix(":")
@@ -131,7 +160,12 @@ class MainActivity : AppCompatActivity() {
                     "${urlArr[0]}:${urlArr[1]}.${urlArr[2]}.${urlArr[3]}.${urlArr[4]}:${urlArr[5]}"
             }
             edittxt.text.clear()
+            val imm = applicationContext.getSystemService(INPUT_METHOD_SERVICE) as InputMethodManager
+            imm.hideSoftInputFromWindow(v.windowToken, 0)
             updateTextView()
+        }
+        else {
+            sendRaw(edittxt.text.toString())
         }
     }
     private fun sendRaw(text:String){
@@ -142,14 +176,14 @@ class MainActivity : AppCompatActivity() {
     private fun send(parameters:HashMap<String, String>){
         val postRequest = object: StringRequest(Request.Method.POST, url, Response.Listener {}, Response.ErrorListener{}) {
             override fun getBodyContentType():String {
-                return "application/x-www-form-urlencoded; charset=UTF-8"
+                return "application/x-www-form-urlencoded"
             }
 
             override fun getParams(): Map<String, String> {
                 return parameters
             }
         }
-        Log.d("sending", "Sending $parameters.toString()")
+        Log.d("sending", "Sending $parameters")
         queue.add(postRequest)
 
     }

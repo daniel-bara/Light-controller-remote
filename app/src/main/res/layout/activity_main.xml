@@ -24,6 +24,9 @@
 
     <include
         layout="@layout/content_main"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:layout_margin="2dp"
         android:background="#2D2F31" />
 
     <com.google.android.material.floatingactionbutton.FloatingActionButton

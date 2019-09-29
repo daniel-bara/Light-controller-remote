@@ -83,7 +83,9 @@ public class AlphaSlideBar extends AbstractSlider {
   public void updatePaint(Paint colorPaint) {
     float[] hsv = new float[3];
     Color.colorToHSV(getColor(), hsv);
-    int startColor = Color.HSVToColor(0, hsv);
+    hsv[2] = 0;
+    int startColor = Color.HSVToColor(127, hsv);
+    hsv[2] = 1;
     int endColor = Color.HSVToColor(255, hsv);
     Shader shader =
         new LinearGradient(
