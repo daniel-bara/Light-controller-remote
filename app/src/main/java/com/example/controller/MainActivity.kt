@@ -99,7 +99,7 @@ class MainActivity : AppCompatActivity() {
 
     fun sendColor(){
         val argbSelected = HashMap<String, String>()
-        argbSelected["maxBrightness"] = (argbEnvelope.argb[0]*100/255).toString()
+        argbSelected["maxBrightness"] = (argbEnvelope.argb[0]*105/255-5).toString()
         argbSelected["r"] = argbEnvelope.argb[1].toString()
         argbSelected["g"] = argbEnvelope.argb[2].toString()
         argbSelected["b"] = argbEnvelope.argb[3].toString()
