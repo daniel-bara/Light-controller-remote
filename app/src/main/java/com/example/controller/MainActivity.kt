@@ -30,13 +30,14 @@ import android.content.Context.INPUT_METHOD_SERVICE
 import androidx.core.content.ContextCompat.getSystemService
 import android.R.string.no
 import android.R.attr.name
+import android.content.SharedPreferences
 import androidx.core.app.ComponentActivity.ExtraData
 import android.icu.lang.UCharacter.GraphemeClusterBreak.T
 import android.view.inputmethod.InputMethodManager
 
 
 class MainActivity : AppCompatActivity() {
-    var url = "http://192.168.2.104:8766"
+    var url = ""
     val colorDelayMillis:Long = 600
     lateinit var textvw:TextView
     lateinit var edittxt:EditText
@@ -44,12 +45,15 @@ class MainActivity : AppCompatActivity() {
     var sendingColorQueue= 0
     lateinit var argbEnvelope: ColorEnvelope
     val continuousSender = Handler()
+    private lateinit var sharedPreferences:SharedPreferences
+
+
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_main)
-
-        //setSupportActionBar(toolbar)
+        sharedPreferences = getPreferences(MODE_PRIVATE)
+        url = sharedPreferences.getString("url", "http://192.168.2.104:8766")
         edittxt= findViewById(R.id.editText)
         textvw= findViewById(R.id.tvw)
         fab.setOnClickListener {
@@ -81,6 +85,8 @@ class MainActivity : AppCompatActivity() {
                 }
             }
         })
+        colorPickerView.setLifecycleOwner(this)
+        colorPickerView.preferenceName= "MyColorPicker"
         val alphaSlideBar: AlphaSlideBar = findViewById(R.id.alphaSlideBar)
         colorPickerView.attachAlphaSlider(alphaSlideBar)
 
@@ -95,6 +101,14 @@ class MainActivity : AppCompatActivity() {
                 return false
             }
         })
+    }
+
+    override fun onDestroy() {
+        super.onDestroy()
+        with (sharedPreferences.edit()) {
+            putString("url", url)
+            apply()
+        }
     }
 
     fun sendColor(){
