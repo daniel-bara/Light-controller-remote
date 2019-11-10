@@ -2,9 +2,9 @@ package com.example.controller
 
 import android.os.Bundle
 import android.os.Handler
-import android.text.InputType
 import androidx.appcompat.app.AppCompatActivity
 import android.view.Menu
+import android.Manifest
 import android.view.MenuItem
 import android.view.View
 import com.android.volley.Request
@@ -21,24 +21,17 @@ import com.skydoves.colorpickerview.listeners.ColorEnvelopeListener
 import kotlinx.android.synthetic.main.content_main.*
 import com.skydoves.colorpickerview.sliders.AlphaSlideBar
 import android.view.KeyEvent.KEYCODE_ENTER
-import android.R.string.no
-import android.R.attr.name
-import androidx.core.content.ContextCompat.getSystemService
-import android.icu.lang.UCharacter.GraphemeClusterBreak.T
 import android.view.KeyEvent
-import android.content.Context.INPUT_METHOD_SERVICE
-import androidx.core.content.ContextCompat.getSystemService
-import android.R.string.no
-import android.R.attr.name
 import android.content.SharedPreferences
-import androidx.core.app.ComponentActivity.ExtraData
-import android.icu.lang.UCharacter.GraphemeClusterBreak.T
 import android.view.inputmethod.InputMethodManager
+import androidx.core.app.ActivityCompat
+import com.google.android.material.snackbar.Snackbar
+import java.sql.Timestamp
 
 
 class MainActivity : AppCompatActivity() {
     var url = ""
-    val colorDelayMillis:Long = 600
+    val colorDelayMillis:Long = 500
     lateinit var textvw:TextView
     lateinit var edittxt:EditText
     private lateinit var queue:RequestQueue
@@ -49,12 +42,15 @@ class MainActivity : AppCompatActivity() {
 
 
 
+
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_main)
         sharedPreferences = getPreferences(MODE_PRIVATE)
-        url = sharedPreferences.getString("url", "http://192.168.2.104:8766")
-        edittxt= findViewById(R.id.editText)
+        ActivityCompat.requestPermissions(this, Array(1){"com.urbandroid.sleep.READ"}, 2)
+        url = sharedPreferences.getString("url","http://192.168.2.104:8766")
+        edittxt = findViewById(R.id.editText)
         textvw= findViewById(R.id.tvw)
         fab.setOnClickListener {
             sendRaw(edittxt.text.toString())
@@ -141,9 +137,15 @@ class MainActivity : AppCompatActivity() {
         val params = HashMap<String, String>()
         params["lightOn"] = "1"
         send(params)
+
+
     }
     fun onClickTurnOff(v:View){
         val params = HashMap<String, String>()
+
+        Snackbar.make(v, "Alarm set " + nextAlarmSeconds()/3600 + " hours " + nextAlarmSeconds()%3600/60 + " minutes from now", Snackbar.LENGTH_LONG)
+            .setAction("Action", null).setDuration(5000).show()
+        params["alarmIn"] = (nextAlarmSeconds()-60).toString()
         params["lightOn"] = "0"
         send(params)
     }
@@ -180,6 +182,8 @@ class MainActivity : AppCompatActivity() {
         }
         else {
             sendRaw(edittxt.text.toString())
+
+
         }
     }
     private fun sendRaw(text:String){
@@ -200,5 +204,12 @@ class MainActivity : AppCompatActivity() {
         Log.d("sending", "Sending $parameters")
         queue.add(postRequest)
 
+    }
+
+    private fun nextAlarmSeconds():Int {
+        val projection = arrayOf(Alarm.Columns.HOUR,  Alarm.Columns.ALARM_TIME, Alarm.Columns.ENABLED)
+        val cursor = managedQuery(Alarm.Columns.CONTENT_URI, projection, Alarm.Columns.ENABLED + " = " + "1", null, Alarm.Columns.ALARM_TIME + " ASC")
+        cursor.moveToFirst()
+        return ((cursor.getString(1).toLong() - System.currentTimeMillis())/1000).toInt()
     }
 }
