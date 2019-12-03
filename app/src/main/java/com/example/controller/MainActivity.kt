@@ -158,7 +158,7 @@ class MainActivity : AppCompatActivity() {
     fun onClickModifyUrl(v:View) {
         val text = edittxt.text.toString()
         if(!text.contains('=')) {
-            if (text.split('.').lastIndex == 4) {
+            if (text.split('.').lastIndex == 3) {
                 url =
                     if (editText.text.toString()[0] == 'h') {  // text is http://192.168.2.104:8555
                         text
