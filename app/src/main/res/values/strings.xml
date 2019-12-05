@@ -1,4 +1,10 @@
 <resources>
     <string name="app_name">Controller</string>
     <string name="action_settings">Settings</string>
+
+    <string
+        name="destination"
+        >Sending commands to %1$s</string>
+
+
 </resources>
