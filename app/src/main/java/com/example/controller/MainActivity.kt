@@ -31,7 +31,7 @@ import java.sql.Timestamp
 
 class MainActivity : AppCompatActivity() {
     var url = ""
-    val colorDelayMillis:Long = 500
+    val colorDelayMillis:Long = 80
     lateinit var textvw:TextView
     lateinit var edittxt:EditText
     private lateinit var queue:RequestQueue
