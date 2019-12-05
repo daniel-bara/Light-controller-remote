@@ -29,7 +29,7 @@ import com.google.android.material.snackbar.Snackbar
 class MainActivity : AppCompatActivity() {
 //region constants
     private val alarmEarlierBySeconds:Int =60
-    private val colorDelayMillis:Long = 500
+    private val colorDelayMillis:Long = 250
     //endregion
 
 // region variables
@@ -38,12 +38,8 @@ class MainActivity : AppCompatActivity() {
     private lateinit var sharedPreferences:SharedPreferences
 
     var url = ""
-<<<<<<< HEAD
-    val colorDelayMillis:Long = 80
-    lateinit var textvw:TextView
-    lateinit var edittxt:EditText
-=======
->>>>>>> 3f2ea5297be8283c64fd95eb4f42445139aafe52
+
+
     private lateinit var queue:RequestQueue
     var sendingColorQueue = 0
     lateinit var argbEnvelope: ColorEnvelope
@@ -120,7 +116,7 @@ class MainActivity : AppCompatActivity() {
 
     fun sendColor(){
         val argbSelected = HashMap<String, String>()
-        argbSelected["maxBrightness"] = (argbEnvelope.argb[0]*105/255-5).toString()
+        argbSelected["bri"] = (argbEnvelope.argb[0]*105/255-5).toString()
         argbSelected["r"] = argbEnvelope.argb[1].toString()
         argbSelected["g"] = argbEnvelope.argb[2].toString()
         argbSelected["b"] = argbEnvelope.argb[3].toString()
